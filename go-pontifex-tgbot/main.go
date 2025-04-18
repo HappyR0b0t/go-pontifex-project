@@ -21,7 +21,7 @@ var textForDecipher = make(map[int64]string)
 var textForDecipherMu sync.Mutex
 
 func handleCipherCommand(request string) string {
-	url := "http://localhost:8080/cipher"
+	url := "http://nice_hugle:8080/cipher"
 
 	type CipherRequest struct {
 		Message string   `json:"message"`
@@ -44,7 +44,7 @@ func handleCipherCommand(request string) string {
 }
 
 func handleDecipherCommand(message string, deck string) string {
-	url := "http://localhost:8080/decipher"
+	url := "http://nice_hugle:8080/decipher"
 
 	var deckArr []string
 	json.Unmarshal([]byte(deck), &deckArr)
