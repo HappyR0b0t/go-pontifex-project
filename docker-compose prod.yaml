@@ -1,0 +1,22 @@
+services:
+  pntfx-backend:
+    build: ./go-pontifex-backend
+    container_name: pntfx-backend
+    networks:
+      - pntfx-network
+    env_file: .env
+  pntfx-tgbot:
+    build: ./go-pontifex-tgbot
+    container_name: pntfx-tgbot
+    networks:
+      - pntfx-network
+  pntfx-db:
+    image:
+      postgres:15
+    container_name: pntfx-db
+    networks:
+      - pntfx-network
+    env_file: .env
+networks:
+  pntfx-network:
+    driver: bridge

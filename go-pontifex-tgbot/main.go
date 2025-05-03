@@ -16,6 +16,56 @@ var (
 	userStatesMu      sync.Mutex
 	textForDecipher   = make(map[int64]string)
 	textForDecipherMu sync.Mutex
+
+	// Menu texts
+	firstMenu  = "<b>Main menu</b>\n\nSelect an option"
+	secondMenu = "<b>Cipher a text message menu</b>\n\nSelect an option"
+	thirdMenu  = "<b>Decipher a text message menu</b>\n\nSelect an option"
+	fourthMenu = "<b>About</b>\n\nAbout Pontifex algorithm..."
+
+	// Button texts
+	aboutButton        = "About"
+	backButton         = "Back"
+	cipherButton       = "Cipher text"
+	decipherButton     = "Decipher text"
+	loadtextButton     = "Load text"
+	loaddeckButton     = "Load deck"
+	generatedeckButton = "Generate deck"
+	// tutorialButton     = "Tutorial"
+
+	// Keyboard layout for the first menu. One button, one row
+	firstMenuMarkup = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(aboutButton, aboutButton),
+			tgbotapi.NewInlineKeyboardButtonData(cipherButton, cipherButton),
+			tgbotapi.NewInlineKeyboardButtonData(decipherButton, decipherButton),
+			tgbotapi.NewInlineKeyboardButtonData(generatedeckButton, generatedeckButton),
+		),
+	)
+
+	// Keyboard layout for the second menu. Two buttons, one per row
+	secondMenuMarkup = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(backButton, backButton),
+			tgbotapi.NewInlineKeyboardButtonData(loadtextButton, loadtextButton),
+			tgbotapi.NewInlineKeyboardButtonData(loaddeckButton, loaddeckButton),
+			tgbotapi.NewInlineKeyboardButtonData(generatedeckButton, generatedeckButton),
+		),
+	)
+	// Keyboard layout for the second menu. Two buttons, one per row
+	thirdMenuMarkup = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(backButton, backButton),
+			tgbotapi.NewInlineKeyboardButtonData(loadtextButton, loadtextButton),
+			tgbotapi.NewInlineKeyboardButtonData(loaddeckButton, loaddeckButton),
+		),
+	)
+	fourthMenuMarkup = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(backButton, backButton),
+			// tgbotapi.NewInlineKeyboardButtonData(cipherButton, cipherButton),
+		),
+	)
 )
 
 func main() {
@@ -39,7 +89,18 @@ func main() {
 		if update.Message == nil {
 			continue
 		}
-		go handleMessage(bot, update.Message)
+		go handleUpdate(bot, update)
+	}
+}
+
+func handleUpdate(bot *tgbotapi.BotAPI, update tgbotapi.Update) {
+	switch {
+	// Handle messages
+	case update.Message != nil:
+		handleMessage(bot, update.Message)
+	// Handle button clicks
+	case update.CallbackQuery != nil:
+		handleButton(bot, update.CallbackQuery)
 	}
 }
 
@@ -87,6 +148,10 @@ func handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 			bot.Send(reply)
 			stateChanger(chatID, "started")
 			return
+
+		case "menu":
+			sendMenu(bot, chatID)
+			return
 		}
 	}
 
@@ -127,4 +192,41 @@ func handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 
 		}
 	}
+}
+
+func handleButton(bot *tgbotapi.BotAPI, query *tgbotapi.CallbackQuery) {
+	var text string
+
+	markup := tgbotapi.NewInlineKeyboardMarkup()
+	message := query.Message
+
+	if query.Data == cipherButton {
+		text = secondMenu
+		markup = secondMenuMarkup
+	} else if query.Data == decipherButton {
+		text = thirdMenu
+		markup = thirdMenuMarkup
+	} else if query.Data == aboutButton {
+		text = fourthMenu
+		markup = fourthMenuMarkup
+	} else if query.Data == backButton {
+		text = firstMenu
+		markup = firstMenuMarkup
+	}
+
+	callbackCfg := tgbotapi.NewCallback(query.ID, "")
+	bot.Send(callbackCfg)
+
+	// Replace menu text and keyboard
+	msg := tgbotapi.NewEditMessageTextAndMarkup(message.Chat.ID, message.MessageID, text, markup)
+	msg.ParseMode = tgbotapi.ModeHTML
+	bot.Send(msg)
+}
+
+func sendMenu(bot *tgbotapi.BotAPI, chatId int64) error {
+	msg := tgbotapi.NewMessage(chatId, firstMenu)
+	msg.ParseMode = tgbotapi.ModeHTML
+	msg.ReplyMarkup = firstMenuMarkup
+	_, err := bot.Send(msg)
+	return err
 }
