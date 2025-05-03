@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"io"
@@ -72,7 +72,7 @@ func TestIndexHandler(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()
 
-	indexHandler(w, req)
+	IndexHandler(w, req)
 	resp := w.Result()
 
 	if resp.StatusCode != 200 {
@@ -89,7 +89,7 @@ func TestCipherHandlerNoDeckNoMessage(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/cipher", nil)
 	w := httptest.NewRecorder()
 
-	cipherHandler(w, req)
+	CipherHandler(w, req)
 	resp := w.Result()
 
 	if resp.StatusCode != 400 {
@@ -107,7 +107,7 @@ func TestCipherHandlerWithDeck(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/cipher", strings.NewReader(standardReqBody))
 	w := httptest.NewRecorder()
 
-	cipherHandler(w, req)
+	CipherHandler(w, req)
 	resp := w.Result()
 
 	if resp.StatusCode != http.StatusOK {
@@ -125,7 +125,7 @@ func TestCipherHandlerMethodGet(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/cipher", nil)
 	w := httptest.NewRecorder()
 
-	cipherHandler(w, req)
+	CipherHandler(w, req)
 	resp := w.Result()
 
 	if resp.StatusCode != http.StatusBadRequest {
@@ -137,7 +137,7 @@ func TestDecipherHandlerMethodGet(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/decipher", nil)
 	w := httptest.NewRecorder()
 
-	decipherHandler(w, req)
+	DecipherHandler(w, req)
 	resp := w.Result()
 
 	if resp.StatusCode != http.StatusBadRequest {
@@ -149,7 +149,7 @@ func TestGenerateDeckHandler(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/generate", nil)
 	w := httptest.NewRecorder()
 
-	decipherHandler(w, req)
+	DecipherHandler(w, req)
 	resp := w.Result()
 
 	if resp.StatusCode != http.StatusOK {

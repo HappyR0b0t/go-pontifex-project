@@ -3,6 +3,8 @@ package deck_utils
 import (
 	"math/rand"
 	"strings"
+
+	"example.com/go-pontifex/pkg/text_utils"
 )
 
 var suitsMap = map[string]int{
@@ -200,3 +202,30 @@ func KeyStream(textLength int, inputDeck *[]string) ([]string, []int) {
 // 	}
 // 	return KeyStreamRecusrsive(inputDeck, keyStream, numberedText, i)
 // }
+
+// A function to cipher provided text with provided deck
+func CipherText(plainText string, inputDeck []string) string {
+	// plainText := utils.ReadText("input_text.txt")
+	// inputDeck := utils.ReadDeck("input_deck.txt")
+
+	numberedText := text_utils.TextToNumber(plainText)
+	var textLength int = len(numberedText)
+	_, keyStream := KeyStream(textLength, &inputDeck)
+	keys := text_utils.NumberToKey(numberedText, keyStream)
+	cipheredText := text_utils.KeyToText(keys)
+
+	return cipheredText
+}
+
+// A function to decipher provided text with provided deck
+func DecipherText(cipheredText string, inputDeck []string) string {
+	// inputDeck := utils.ReadDeck("input_deck.txt")
+
+	numberedText := text_utils.TextToNumber(cipheredText)
+	var textLength int = len(numberedText)
+	_, keyStream := KeyStream(textLength, &inputDeck)
+	keys := text_utils.KeyToNumber(numberedText, keyStream)
+	decipheredText := text_utils.KeyToText(keys)
+
+	return decipheredText
+}
