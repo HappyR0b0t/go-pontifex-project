@@ -140,7 +140,6 @@ func handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 			generated := handlers.HandleGenerateCommand()
 			reply := tgbotapi.NewMessage(chatID, generated)
 			bot.Send(reply)
-
 			return
 
 		case "start":
@@ -162,9 +161,13 @@ func handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 			bot.Send(reply)
 
 		case "waiting_for_text_to_cipher":
+			reply_0 := tgbotapi.NewMessage(chatID, "Here is your ciphered text:")
+			bot.Send(reply_0)
+
 			ciphered := handlers.HandleCipherCommand(msg.Text)
 
 			reply := tgbotapi.NewMessage(chatID, ciphered)
+
 			bot.Send(reply)
 
 			stateChanger(chatID, "started")

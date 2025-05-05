@@ -31,9 +31,10 @@ func HandleCipherCommand(request string) string {
 		fmt.Println("Ошибка!", err)
 		return ""
 	}
+
 	defer resp.Body.Close()
+
 	body, err := io.ReadAll(resp.Body)
-	fmt.Println("----", string(body), "----")
 
 	if err != nil {
 		fmt.Println("Ошибка при чтении ответа:", err)
@@ -46,6 +47,7 @@ func HandleCipherCommand(request string) string {
 		fmt.Println("Ошибка при разборе JSON:", err)
 		return ""
 	}
+
 	str := ""
 	str += "Your ciphered message: \n"
 	str += result.Message
