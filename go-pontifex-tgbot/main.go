@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strings"
 	"sync"
 
 	handlers "example.com/go-pontifex-tgbot/handlers"
@@ -136,7 +137,8 @@ func handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 			return
 
 		case "generate":
-			// reply := tgbotapi.NewMessage(chatID, "Enter message to decrypt!")
+			replyMessage := tgbotapi.NewMessage(chatID, "Here is your deck:")
+			bot.Send(replyMessage)
 			generated := handlers.HandleGenerateCommand()
 			reply := tgbotapi.NewMessage(chatID, generated)
 			bot.Send(reply)
@@ -151,24 +153,44 @@ func handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 		case "menu":
 			sendMenu(bot, chatID)
 			return
+
+		case "help":
+			reply := tgbotapi.NewMessage(chatID, "Use /cipher or /decipher to start.")
+			bot.Send(reply)
+			return
+
+		case "about":
+			reply := tgbotapi.NewMessage(chatID, "This bot is a simple implementation of the Pontifex algorithm.")
+			bot.Send(reply)
+			return
+
+		default:
+			reply := tgbotapi.NewMessage(chatID, "Sorry, no such command. Try again")
+			bot.Send(reply)
+			return
 		}
+
 	}
 
 	if !msg.IsCommand() && msg.Text != "" {
 		switch state {
 		case "started":
-			reply := tgbotapi.NewMessage(chatID, "Please use /cipher or /decipher first.")
+			reply := tgbotapi.NewMessage(chatID, "Please use /cipher, /generate or /decipher first.")
 			bot.Send(reply)
 
 		case "waiting_for_text_to_cipher":
-			reply_0 := tgbotapi.NewMessage(chatID, "Here is your ciphered text:")
-			bot.Send(reply_0)
+			cipheredTextMessage := tgbotapi.NewMessage(chatID, "Here is your ciphered text:")
+			bot.Send(cipheredTextMessage)
 
-			ciphered := handlers.HandleCipherCommand(msg.Text)
+			cipheredText := handlers.HandleCipherCommand(msg.Text)
+			replyText := tgbotapi.NewMessage(chatID, cipheredText[0])
+			bot.Send(replyText)
 
-			reply := tgbotapi.NewMessage(chatID, ciphered)
+			DeckMessage := tgbotapi.NewMessage(chatID, "Here is your deck:")
+			bot.Send(DeckMessage)
 
-			bot.Send(reply)
+			replyDeck := tgbotapi.NewMessage(chatID, strings.Join(cipheredText[1:], " "))
+			bot.Send(replyDeck)
 
 			stateChanger(chatID, "started")
 

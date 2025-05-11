@@ -5,11 +5,13 @@ services:
     networks:
       - pntfx-network
     env_file: .env
+    restart: unless-stopped
   pntfx-tgbot:
     build: ./go-pontifex-tgbot
     container_name: pntfx-tgbot
     networks:
       - pntfx-network
+    restart: unless-stopped
   pntfx-db:
     image:
       postgres:15
@@ -17,6 +19,7 @@ services:
     networks:
       - pntfx-network
     env_file: .env
+    restart: unless-stopped
 networks:
   pntfx-network:
     driver: bridge

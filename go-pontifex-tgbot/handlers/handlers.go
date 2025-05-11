@@ -14,7 +14,7 @@ type CipherDecipherResponse struct {
 	Deck    []string `json:"deck"`
 }
 
-func HandleCipherCommand(request string) string {
+func HandleCipherCommand(request string) []string {
 	url := "http://pntfx-backend:8080/cipher"
 
 	type CipherRequest struct {
@@ -29,7 +29,7 @@ func HandleCipherCommand(request string) string {
 
 	if err != nil {
 		fmt.Println("Ошибка!", err)
-		return ""
+		return []string{}
 	}
 
 	defer resp.Body.Close()
@@ -38,24 +38,20 @@ func HandleCipherCommand(request string) string {
 
 	if err != nil {
 		fmt.Println("Ошибка при чтении ответа:", err)
-		return ""
+		return []string{}
 	}
 
 	var result CipherDecipherResponse
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		fmt.Println("Ошибка при разборе JSON:", err)
-		return ""
+		return []string{}
 	}
 
-	str := ""
-	str += "Your ciphered message: \n"
-	str += result.Message
-	str += "\n"
-	str += "Your deck: \n"
-	for _, card := range result.Deck {
-		str += card + " "
-	}
+	str := []string{}
+
+	str = append(str, result.Message)
+	str = append(str, result.Deck...)
 
 	return str
 }
