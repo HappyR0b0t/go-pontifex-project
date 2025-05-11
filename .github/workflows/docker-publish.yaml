@@ -35,7 +35,7 @@ jobs:
         file: ./${{ matrix.service }}/Dockerfile # Путь к Dockerfile сервиса
         push: true
         tags: | # Теги для образа
-          ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:latest
-          ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:${{ github.sha }}
+          - ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:latest
+          - ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:${{ github.sha }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
