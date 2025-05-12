@@ -179,10 +179,26 @@ func handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 			bot.Send(reply)
 
 		case "waiting_for_text_to_cipher":
+			textForDecipherMu.Lock()
+			textForDecipher[chatID] = msg.Text
+			textForDecipherMu.Unlock()
+
+			reply := tgbotapi.NewMessage(
+				chatID,
+				"Now send the deck to use for ciphering.\n If you choose not to provide the deck, it will be generated for you.")
+			bot.Send(reply)
+
+			stateChanger(chatID, "waiting_for_deck_to_cipher")
+
+		case "waiting_for_deck_to_cipher":
+			textForDecipherMu.Lock()
+			originalText := textForDecipher[chatID]
+			textForDecipherMu.Unlock()
+
 			cipheredTextMessage := tgbotapi.NewMessage(chatID, "Here is your ciphered text:")
 			bot.Send(cipheredTextMessage)
 
-			cipheredText := handlers.HandleCipherCommand(msg.Text)
+			cipheredText := handlers.HandleCipherCommand(originalText, msg.Text)
 			replyText := tgbotapi.NewMessage(chatID, cipheredText[0])
 			bot.Send(replyText)
 
@@ -209,11 +225,6 @@ func handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 			originalText := textForDecipher[chatID]
 			textForDecipherMu.Unlock()
 
-			// deciphered := handlers.HandleDecipherCommand(originalText, msg.Text)
-			// reply := tgbotapi.NewMessage(chatID, deciphered)
-			// bot.Send(reply)
-
-			// stateChanger(chatID, "started")
 			decipheredTextMessage := tgbotapi.NewMessage(chatID, "Here is your deciphered text:")
 			bot.Send(decipheredTextMessage)
 

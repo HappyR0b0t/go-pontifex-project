@@ -14,15 +14,17 @@ type CipherDecipherResponse struct {
 	Deck    []string `json:"deck"`
 }
 
-func HandleCipherCommand(request string) []string {
+func HandleCipherCommand(message string, deck string) []string {
 	url := "http://pntfx-backend:8080/cipher"
+
+	deckArr := strings.Split(deck, " ")
 
 	type CipherRequest struct {
 		Message string   `json:"message"`
 		Deck    []string `json:"deck"`
 	}
 
-	data := CipherRequest{request, []string{}}
+	data := CipherRequest{message, deckArr}
 	jsonData, _ := json.Marshal(data)
 
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
