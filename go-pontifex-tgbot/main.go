@@ -209,9 +209,23 @@ func handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 			originalText := textForDecipher[chatID]
 			textForDecipherMu.Unlock()
 
-			deciphered := handlers.HandleDecipherCommand(originalText, msg.Text)
-			reply := tgbotapi.NewMessage(chatID, deciphered)
-			bot.Send(reply)
+			// deciphered := handlers.HandleDecipherCommand(originalText, msg.Text)
+			// reply := tgbotapi.NewMessage(chatID, deciphered)
+			// bot.Send(reply)
+
+			// stateChanger(chatID, "started")
+			decipheredTextMessage := tgbotapi.NewMessage(chatID, "Here is your deciphered text:")
+			bot.Send(decipheredTextMessage)
+
+			decipheredText := handlers.HandleDecipherCommand(originalText, msg.Text)
+			replyText := tgbotapi.NewMessage(chatID, decipheredText[0])
+			bot.Send(replyText)
+
+			DeckMessage := tgbotapi.NewMessage(chatID, "Here is your deck:")
+			bot.Send(DeckMessage)
+
+			replyDeck := tgbotapi.NewMessage(chatID, strings.Join(decipheredText[1:], " "))
+			bot.Send(replyDeck)
 
 			stateChanger(chatID, "started")
 

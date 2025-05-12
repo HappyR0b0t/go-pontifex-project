@@ -56,7 +56,7 @@ func HandleCipherCommand(request string) []string {
 	return str
 }
 
-func HandleDecipherCommand(message string, deck string) string {
+func HandleDecipherCommand(message string, deck string) []string {
 	url := "http://pntfx-backend:8080/decipher"
 
 	deckArr := strings.Split(deck, " ")
@@ -72,7 +72,7 @@ func HandleDecipherCommand(message string, deck string) string {
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		fmt.Println("Ошибка!", err)
-		return ""
+		return []string{}
 	}
 
 	defer resp.Body.Close()
@@ -80,25 +80,23 @@ func HandleDecipherCommand(message string, deck string) string {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("Ошибка при чтении ответа:", err)
-		return ""
+		return []string{}
 	}
 
 	var result CipherDecipherResponse
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		fmt.Println("Ошибка при разборе JSON:", err)
-		return ""
+		return []string{}
 	}
 
-	str := ""
-	str += "Your deciphered message: \n"
-	str += result.Message
-	str += "\n"
-	str += "Your deck: \n"
-	for _, card := range result.Deck {
-		str += card + " "
-	}
+	str := []string{}
+
+	str = append(str, result.Message)
+	str = append(str, result.Deck...)
+
 	return str
+
 }
 
 func HandleGenerateCommand() string {
