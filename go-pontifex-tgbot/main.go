@@ -183,9 +183,7 @@ func handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 			textForDecipher[chatID] = msg.Text
 			textForDecipherMu.Unlock()
 
-			reply := tgbotapi.NewMessage(
-				chatID,
-				"Now send the deck to use for ciphering.\n If you choose not to provide the deck, it will be generated for you.")
+			reply := tgbotapi.NewMessage(chatID, "Provide a deck or send 'no deck' message")
 			bot.Send(reply)
 
 			stateChanger(chatID, "waiting_for_deck_to_cipher")

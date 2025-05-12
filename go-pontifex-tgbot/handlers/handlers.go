@@ -17,7 +17,12 @@ type CipherDecipherResponse struct {
 func HandleCipherCommand(message string, deck string) []string {
 	url := "http://pntfx-backend:8080/cipher"
 
-	deckArr := strings.Split(deck, " ")
+	deckArr := []string{}
+	if deck == "" || deck == "no deck" {
+		deckArr = []string{}
+	} else {
+		deckArr = strings.Split(deck, " ")
+	}
 
 	type CipherRequest struct {
 		Message string   `json:"message"`
