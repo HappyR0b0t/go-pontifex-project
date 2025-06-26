@@ -1,6 +1,8 @@
 package main
 
 import (
+	// "database/sql"
+	// "fmt"
 	"log"
 	"os"
 	"strings"
@@ -10,6 +12,8 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/joho/godotenv"
+
+	_ "github.com/lib/pq"
 )
 
 var (
@@ -17,6 +21,10 @@ var (
 	userStatesMu      sync.Mutex
 	textForDecipher   = make(map[int64]string)
 	textForDecipherMu sync.Mutex
+
+	// Command texts
+	helpText  = "In order to cipher a message, you should provide a text in latin alphabet, using no other symbols"
+	aboutText = "This is a ..."
 
 	// Menu texts
 	firstMenu  = "<b>Main menu</b>\n\nSelect an option"
@@ -69,7 +77,27 @@ var (
 	)
 )
 
+// var db *sql.DB
+
+// func initDB() {
+// 	connStr := "user=botuser password=botpass dbname=mybotdb sslmode=disable"
+// 	var err error
+// 	db, err = sql.Open("postgres", connStr)
+// 	if err != nil {
+// 		log.Fatalf("Failed to open database: %v", err)
+// 	}
+
+// 	// Проверка соединения
+// 	if err := db.Ping(); err != nil {
+// 		log.Fatalf("Failed to connect to database: %v", err)
+// 	}
+
+// 	fmt.Println("Connected to PostgreSQL successfully.")
+// }
+
 func main() {
+	// initDB()
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal(".env file couldn't be loaded")
@@ -155,12 +183,12 @@ func handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 			return
 
 		case "help":
-			reply := tgbotapi.NewMessage(chatID, "Use /cipher or /decipher to start.")
+			reply := tgbotapi.NewMessage(chatID, helpText)
 			bot.Send(reply)
 			return
 
 		case "about":
-			reply := tgbotapi.NewMessage(chatID, "This bot is a simple implementation of the Pontifex algorithm.")
+			reply := tgbotapi.NewMessage(chatID, aboutText)
 			bot.Send(reply)
 			return
 

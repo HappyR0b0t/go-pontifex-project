@@ -18,9 +18,7 @@ func HandleCipherCommand(message string, deck string) []string {
 	url := "http://pntfx-backend:8080/cipher"
 
 	deckArr := []string{}
-	if deck == "" || deck == "no deck" {
-		deckArr = []string{}
-	} else {
+	if deck != "" && deck != "no deck" {
 		deckArr = strings.Split(deck, " ")
 	}
 
