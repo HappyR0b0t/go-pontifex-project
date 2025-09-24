@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"unicode"
 
 	deck_utils "example.com/go-pontifex/pkg/deck_utils"
 )
@@ -75,6 +76,13 @@ func CipherHandler(w http.ResponseWriter, r *http.Request) {
 	if len(inputData.Message) == 0 {
 		http.Error(w, "Запрос не содержит сообщения", http.StatusBadRequest)
 		return
+	}
+
+	for _, v := range inputData.Message {
+		if !unicode.IsLetter(v) || !unicode.Is(unicode.Latin, v) {
+			http.Error(w, "Сообщение не должно содержать символы отличные от букв латинского алфавита", http.StatusBadRequest)
+			return
+		}
 	}
 
 	if len(inputData.Deck) == 0 {

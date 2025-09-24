@@ -51,7 +51,6 @@ func KeyToText(keys []int) string {
 	var text string
 	var c int = 64
 	for i, val := range keys {
-		// fmt.Println(int(val), "<- current val")
 		if i%5 == 0 && i > 4 {
 			text += " "
 		}

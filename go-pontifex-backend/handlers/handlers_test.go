@@ -4,12 +4,13 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 )
 
-var standardReqBody = `{
-	"message": "Test Message",
+var standartReqBody = `{
+	"message": "TestMessage",
 	"deck": [
 		"clubs-A",
 		"clubs-2",
@@ -69,13 +70,21 @@ var standardReqBody = `{
 }`
 
 func TestIndexHandler(t *testing.T) {
+	os.MkdirAll("./static", os.ModePerm)
+	testContent := "<html><body>Hello Test!</body></html>"
+	if err := os.WriteFile("./static/index.html", []byte(testContent), 0644); err != nil {
+		t.Fatalf("не удалось создать index.html: %v", err)
+	}
+	defer os.RemoveAll("./static")
+
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()
 
 	IndexHandler(w, req)
 	resp := w.Result()
+	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("Ожидался статус 200, получен %v", resp.StatusCode)
 	}
 	body, _ := io.ReadAll(resp.Body)
@@ -103,8 +112,8 @@ func TestCipherHandlerNoDeckNoMessage(t *testing.T) {
 	}
 }
 
-func TestCipherHandlerWithDeck(t *testing.T) {
-	req := httptest.NewRequest(http.MethodPost, "/cipher", strings.NewReader(standardReqBody))
+func TestCipherHandlerWithDeckAndMessage(t *testing.T) {
+	req := httptest.NewRequest(http.MethodPost, "/cipher", strings.NewReader(standartReqBody))
 	w := httptest.NewRecorder()
 
 	CipherHandler(w, req)
@@ -122,7 +131,7 @@ func TestCipherHandlerWithDeck(t *testing.T) {
 }
 
 func TestCipherHandlerMethodGet(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/cipher", nil)
+	req := httptest.NewRequest(http.MethodPost, "/cipher", nil)
 	w := httptest.NewRecorder()
 
 	CipherHandler(w, req)
@@ -134,7 +143,7 @@ func TestCipherHandlerMethodGet(t *testing.T) {
 }
 
 func TestDecipherHandlerMethodGet(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/decipher", nil)
+	req := httptest.NewRequest(http.MethodPost, "/decipher", nil)
 	w := httptest.NewRecorder()
 
 	DecipherHandler(w, req)
@@ -149,7 +158,7 @@ func TestGenerateDeckHandler(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/generate", nil)
 	w := httptest.NewRecorder()
 
-	DecipherHandler(w, req)
+	GenerateDeckHandler(w, req)
 	resp := w.Result()
 
 	if resp.StatusCode != http.StatusOK {

@@ -34,9 +34,9 @@ var rankMap = map[string]int{
 
 func DeckGenerator(suit [4]string, rank [13]string) []string {
 	deck := []string{}
-	for i := range suit {
-		for j := range rank {
-			deck = append(deck, suit[i]+"-"+rank[j])
+	for _, i := range suit {
+		for _, j := range rank {
+			deck = append(deck, i+"-"+j)
 		}
 	}
 	deck = append(deck, "JA")
@@ -60,14 +60,12 @@ func MoveJocker(deckKeys []string, current int, target int) []string {
 
 // Finds a jocker in a deck
 func FindJocker(deck []string, jocker string) int {
-	jockerIndex := 0
 	for i := range deck {
 		if deck[i] == jocker {
-			jockerIndex = i
-			break
+			return i
 		}
 	}
-	return jockerIndex
+	return -1
 }
 
 // Move Jocker A
@@ -161,10 +159,9 @@ func FindOutput(tripleCutDeck []string) int {
 }
 
 // Creates a keystream for conversion into chars non-recursively
-
 func KeyStream(textLength int, inputDeck *[]string) ([]string, []int) {
 	var keyStream = &[]int{}
-	for i := 0; i < textLength; {
+	for i := range textLength {
 		jockers := &[]int{}
 		lastIndex := len(*inputDeck) - 1
 
@@ -183,31 +180,8 @@ func KeyStream(textLength int, inputDeck *[]string) ([]string, []int) {
 	return *inputDeck, *keyStream
 }
 
-// Recursive function of cipher/decipher process
-// func KeyStreamRecusrsive(inputDeck *[]string, keyStream *[]int, numberedText []int, i int) ([]string, []int) {
-// 	key := 0
-// 	if i < len(numberedText) {
-// 		*inputDeck = JockerShift(*inputDeck)
-// 		*inputDeck = TripleCut(*inputDeck)
-// 		*inputDeck = CountCut(*inputDeck)
-// 		if (*inputDeck)[0] == "JA" || (*inputDeck)[0] == "JB" {
-// 			fmt.Println("OUTPUT CARD IS A JOCKER!", (*inputDeck)[0])
-
-// 		}
-// 		key = FindOutput(*inputDeck)
-// 		*keyStream = append(*keyStream, key)
-// 		i += 1
-// 	} else {
-// 		return *inputDeck, *keyStream
-// 	}
-// 	return KeyStreamRecusrsive(inputDeck, keyStream, numberedText, i)
-// }
-
 // A function to cipher provided text with provided deck
 func CipherText(plainText string, inputDeck []string) string {
-	// plainText := utils.ReadText("input_text.txt")
-	// inputDeck := utils.ReadDeck("input_deck.txt")
-
 	numberedText := text_utils.TextToNumber(plainText)
 	var textLength int = len(numberedText)
 	_, keyStream := KeyStream(textLength, &inputDeck)
@@ -219,8 +193,6 @@ func CipherText(plainText string, inputDeck []string) string {
 
 // A function to decipher provided text with provided deck
 func DecipherText(cipheredText string, inputDeck []string) string {
-	// inputDeck := utils.ReadDeck("input_deck.txt")
-
 	numberedText := text_utils.TextToNumber(cipheredText)
 	var textLength int = len(numberedText)
 	_, keyStream := KeyStream(textLength, &inputDeck)
