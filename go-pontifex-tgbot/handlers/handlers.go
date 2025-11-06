@@ -31,18 +31,12 @@ var (
 	The deck is a text containing 54 "words" of "cards" in following format <suit>-<rank>. Suits are classical: clubs, 
 	diamond, hearts and spades. Ranks are as follows: Ace, 2, 3 ... King and two Jokers: JA and JB. If you want another 
 	person to be able to decipher your message, you should provide a ciphered text and the deck you used to cipher it (in its starting state).`
-	aboutText = `Often interpreted as a compound originally meaning bridge\n 
-	maker from Proto Italic "pontifaks" equivalent to "pons" bridge\n
-	"fex" suffix representing a maker or producer either metaphorically\n 
-	one who negotiates between gods and men or literally if at some\n
-	point the social class which supplied the priests was more or less\n 
-	identical with engineers that were responsible for building bridges\n
-	Pontifex is an algorithm for ciphering and deciphering text messages, 
-	described in Neal Stephenson's novel "Cryptonomicon", created by Bruce 
-	Schneier. More widely known as Solitaire cipher, because it uses a deck 
-	of playing cards. Deck consits of 52 classic cards, plus two Jokers. 
-	This ciphering algorithm can be performed with physical deck of cards, 
-	but I decided to make a program for study puprposes and fun.`
+	aboutText = `Often interpreted as a compound originally meaning bridge maker from Proto Italic "pontifaks" equivalent to "pons" bridge 
+	"fex" suffix representing a maker or producer either metaphorically one who negotiates between gods and men or literally if at some
+	point the social class which supplied the priests was more or less identical with engineers that were responsible for building bridges
+	Pontifex is an algorithm for ciphering and deciphering text messages, described in Neal Stephenson's novel "Cryptonomicon", created by Bruce 
+	Schneier. More widely known as Solitaire cipher, because it uses a deck of playing cards. Deck consits of 52 classic cards, plus two Jokers. 
+	This ciphering algorithm can be performed with physical deck of cards, but I decided to make a program for study puprposes and fun.`
 
 	// Menu texts
 	firstMenu  = "<b>Main menu</b>\n\nSelect an option"
