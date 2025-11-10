@@ -13,10 +13,10 @@ import (
 )
 
 var (
-	userStates        = make(map[int64]string)
-	userStatesMu      sync.Mutex
-	textForDecipher   = make(map[int64]string)
-	textForDecipherMu sync.Mutex
+	// userStates        = make(map[int64]string)
+	// userStatesMu      sync.Mutex
+	// textForDecipher   = make(map[int64]string)
+	// textForDecipherMu sync.Mutex
 
 	// Command texts
 	cipherText   = "Please, enter message to cipher. Message should contain only latin characters, no symbols allowed"
@@ -89,52 +89,76 @@ var (
 	)
 )
 
+type UpdateHandler struct {
+	userStates        map[int64]string
+	userStatesMu      sync.Mutex
+	textForDecipher   map[int64]string
+	textForDecipherMu sync.Mutex
+}
+
+func NewUpdateHandler() *UpdateHandler {
+	return &UpdateHandler{
+		userStates:      make(map[int64]string),
+		textForDecipher: make(map[int64]string),
+	}
+}
+
+func (h *UpdateHandler) stateInit(chatID int64) string {
+	h.userStatesMu.Lock()
+	defer h.userStatesMu.Unlock()
+	state, ok := h.userStates[chatID]
+	if !ok {
+		h.userStates[chatID] = "started"
+	}
+	return state
+}
+
+func (h *UpdateHandler) stateChanger(chatID int64, state string) {
+	h.userStatesMu.Lock()
+	defer h.userStatesMu.Unlock()
+	h.userStates[chatID] = state
+}
+
+func (h *UpdateHandler) stateChangerGetText(chatID int64, text string) {
+	h.textForDecipherMu.Lock()
+	defer h.textForDecipherMu.Unlock()
+	h.textForDecipher[chatID] = text
+}
+
 type CipherDecipherResponse struct {
 	Message string   `json:"answer"`
 	Deck    []string `json:"deck"`
 }
 
-func HandleUpdate(bot *tgbotapi.BotAPI, update tgbotapi.Update) {
+func (h *UpdateHandler) HandleUpdate(bot *tgbotapi.BotAPI, update tgbotapi.Update) error {
 	switch {
 	// Handle messages
 	case update.Message != nil:
-		handleMessage(bot, update.Message)
+		h.handleMessage(bot, update.Message)
 	// Handle button clicks
 	case update.CallbackQuery != nil:
 		handleButton(bot, update.CallbackQuery)
 	}
+	return nil
 }
 
-func stateChanger(chatID int64, state string) {
-	userStatesMu.Lock()
-	userStates[chatID] = state
-	userStatesMu.Unlock()
-}
-
-func handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
+func (h *UpdateHandler) handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) error {
 	chatID := msg.Chat.ID
-
-	userStatesMu.Lock()
-	state, ok := userStates[chatID]
-	if !ok {
-		state = "started"
-		userStates[chatID] = state
-	}
-	userStatesMu.Unlock()
+	state := h.stateInit(chatID)
 
 	if msg.IsCommand() {
 		switch msg.Command() {
 		case "cipher":
 			reply := tgbotapi.NewMessage(chatID, cipherText)
 			bot.Send(reply)
-			stateChanger(chatID, "waiting_for_text_to_cipher")
-			return
+			h.stateChanger(chatID, "waiting_for_text_to_cipher")
+			return nil
 
 		case "decipher":
 			reply := tgbotapi.NewMessage(chatID, decipherText)
 			bot.Send(reply)
-			stateChanger(chatID, "waiting_for_text_to_decipher")
-			return
+			h.stateChanger(chatID, "waiting_for_text_to_decipher")
+			return nil
 
 		case "generate":
 			replyMessage := tgbotapi.NewMessage(chatID, "Here is your deck:")
@@ -142,32 +166,32 @@ func handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 			generated := HandleGenerateCommand()
 			reply := tgbotapi.NewMessage(chatID, generated)
 			bot.Send(reply)
-			return
+			return nil
 
 		case "start":
 			reply := tgbotapi.NewMessage(chatID, "Use /cipher or /decipher to start.")
 			bot.Send(reply)
-			stateChanger(chatID, "started")
-			return
+			h.stateChanger(chatID, "started")
+			return nil
 
 		case "menu":
 			sendMenu(bot, chatID)
-			return
+			return nil
 
 		case "help":
 			reply := tgbotapi.NewMessage(chatID, helpText)
 			bot.Send(reply)
-			return
+			return nil
 
 		case "about":
 			reply := tgbotapi.NewMessage(chatID, aboutText)
 			bot.Send(reply)
-			return
+			return nil
 
 		default:
 			reply := tgbotapi.NewMessage(chatID, "Sorry, no such command. Try again")
 			bot.Send(reply)
-			return
+			return nil
 		}
 
 	}
@@ -179,19 +203,17 @@ func handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 			bot.Send(reply)
 
 		case "waiting_for_text_to_cipher":
-			textForDecipherMu.Lock()
-			textForDecipher[chatID] = msg.Text
-			textForDecipherMu.Unlock()
+			h.stateChangerGetText(chatID, msg.Text)
 
 			reply := tgbotapi.NewMessage(chatID, "Provide a deck or send 'no deck' message")
 			bot.Send(reply)
 
-			stateChanger(chatID, "waiting_for_deck_to_cipher")
+			h.stateChanger(chatID, "waiting_for_deck_to_cipher")
 
 		case "waiting_for_deck_to_cipher":
-			textForDecipherMu.Lock()
-			originalText := textForDecipher[chatID]
-			textForDecipherMu.Unlock()
+			h.textForDecipherMu.Lock()
+			originalText := h.textForDecipher[chatID]
+			h.textForDecipherMu.Unlock()
 
 			cipheredTextMessage := tgbotapi.NewMessage(chatID, "Here is your ciphered text:")
 			bot.Send(cipheredTextMessage)
@@ -206,22 +228,20 @@ func handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 			replyDeck := tgbotapi.NewMessage(chatID, strings.Join(cipheredText[1:], " "))
 			bot.Send(replyDeck)
 
-			stateChanger(chatID, "started")
+			h.stateChanger(chatID, "started")
 
 		case "waiting_for_text_to_decipher":
-			textForDecipherMu.Lock()
-			textForDecipher[chatID] = msg.Text
-			textForDecipherMu.Unlock()
+			h.stateChangerGetText(chatID, msg.Text)
 
 			reply := tgbotapi.NewMessage(chatID, "Now send the deck to use for deciphering:")
 			bot.Send(reply)
 
-			stateChanger(chatID, "waiting_for_deck_to_decipher")
+			h.stateChanger(chatID, "waiting_for_deck_to_decipher")
 
 		case "waiting_for_deck_to_decipher":
-			textForDecipherMu.Lock()
-			originalText := textForDecipher[chatID]
-			textForDecipherMu.Unlock()
+			h.textForDecipherMu.Lock()
+			originalText := h.textForDecipher[chatID]
+			h.textForDecipherMu.Unlock()
 
 			decipheredTextMessage := tgbotapi.NewMessage(chatID, "Here is your deciphered text:")
 			bot.Send(decipheredTextMessage)
@@ -236,10 +256,11 @@ func handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 			replyDeck := tgbotapi.NewMessage(chatID, strings.Join(decipheredText[1:], " "))
 			bot.Send(replyDeck)
 
-			stateChanger(chatID, "started")
+			h.stateChanger(chatID, "started")
 
 		}
 	}
+	return nil
 }
 
 func handleButton(bot *tgbotapi.BotAPI, query *tgbotapi.CallbackQuery) {

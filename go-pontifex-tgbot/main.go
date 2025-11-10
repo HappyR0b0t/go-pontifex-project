@@ -50,12 +50,12 @@ func main() {
 	updateConfig.Timeout = 30
 
 	updates := bot.GetUpdatesChan(updateConfig)
+	u := handlers.NewUpdateHandler()
 
 	for update := range updates {
-		// Если обновление не содержит сообщение, пропускаем его
 		if update.Message == nil {
 			continue
 		}
-		go handlers.HandleUpdate(bot, update)
+		go u.HandleUpdate(bot, update, u)
 	}
 }
