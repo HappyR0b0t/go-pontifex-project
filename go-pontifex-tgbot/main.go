@@ -56,6 +56,6 @@ func main() {
 		if update.Message == nil {
 			continue
 		}
-		go u.HandleUpdate(bot, update, u)
+		go u.HandleUpdate(bot, update)
 	}
 }
