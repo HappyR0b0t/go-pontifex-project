@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"strings"
 	"unicode"
 
 	deck_utils "example.com/go-pontifex/pkg/deck_utils"
@@ -72,6 +73,8 @@ func CipherHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Ошибка декодирования JSON: "+err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	inputData.Message = strings.ReplaceAll(inputData.Message, " ", "")
 
 	if len(inputData.Message) == 0 {
 		http.Error(w, "Запрос не содержит сообщения", http.StatusBadRequest)

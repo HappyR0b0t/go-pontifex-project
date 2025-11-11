@@ -1,8 +1,10 @@
 package main
 
 import (
-	"log"
+	"errors"
 	"net/http"
+
+	"github.com/rs/zerolog/log"
 
 	"example.com/go-pontifex/handlers"
 )
@@ -27,8 +29,8 @@ func main() {
 	http.HandleFunc("/decipher", handlers.DecipherHandler)
 	http.HandleFunc("/generate", handlers.GenerateDeckHandler)
 
-	log.Println("Server is running on :8080")
+	log.Info().Msg("Server is running on :8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Fatalf("Server failed: %v", err)
+		log.Fatal().Err(errors.New("server failed to start"))
 	}
 }

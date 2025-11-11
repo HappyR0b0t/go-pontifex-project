@@ -2,6 +2,8 @@ package text_utils
 
 import (
 	"strings"
+
+	"github.com/rs/zerolog/log"
 )
 
 // Converts text to numbers
@@ -17,6 +19,15 @@ func TextToNumber(text string) []int {
 
 // Converts numbers to key for the keystream
 func NumberToKey(numberedText []int, keyStream []int) []int {
+	if len(numberedText) != len(keyStream) {
+		log.Error().
+			Str("function", "NumberToKey").
+			Int("lenNumberedText", len(numberedText)).
+			Int("lenKeyStream", len(keyStream)).
+			Msg("Mismatched argument lengths")
+		return nil
+	}
+
 	keys := []int{}
 	m := 26
 	for i := range numberedText {
@@ -32,6 +43,14 @@ func NumberToKey(numberedText []int, keyStream []int) []int {
 
 // Converts keys from the keystream to numbers
 func KeyToNumber(numberedText []int, keyStream []int) []int {
+	if len(numberedText) != len(keyStream) {
+		log.Error().
+			Str("function", "KeyToNumber").
+			Int("lenNumberedText", len(numberedText)).
+			Int("lenKeyStream", len(keyStream)).
+			Msg("Mismatched argument lengths")
+		return nil
+	}
 	keys := []int{}
 	for i := range numberedText {
 		m := 26

@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"example.com/go-pontifex/pkg/text_utils"
+
+	"github.com/rs/zerolog/log"
 )
 
 var suitsMap = map[string]int{
@@ -161,7 +163,7 @@ func FindOutput(tripleCutDeck []string) int {
 // Creates a keystream for conversion into chars non-recursively
 func KeyStream(textLength int, inputDeck *[]string) ([]string, []int) {
 	var keyStream = &[]int{}
-	for i := range textLength {
+	for i := 0; i < textLength; {
 		jockers := &[]int{}
 		lastIndex := len(*inputDeck) - 1
 
@@ -171,10 +173,14 @@ func KeyStream(textLength int, inputDeck *[]string) ([]string, []int) {
 		*inputDeck = CountCut(*inputDeck, lastCardValue)
 		key := FindOutput(*inputDeck)
 		if key == 53 {
+			log.Info().
+				Str("function", "KeyStream").
+				Int("key", key).
+				Msg("key was a joker")
 			continue
 		}
 		*keyStream = append(*keyStream, key)
-		i += 1
+		i++
 	}
 
 	return *inputDeck, *keyStream
