@@ -65,27 +65,68 @@ func TestTextToNumber(t *testing.T) {
 }
 
 func TestNumberToKey(t *testing.T) {
-	numberedText := []int{1, 26}
-	keyStream := []int{1, 53}
-	keyes := NumberToKey(numberedText, keyStream)
-	fmt.Println("NUMBER TO KEY ==", keyes)
-	testCase := []int{2, 1}
-	for i := range testCase {
-		if keyes[i] != testCase[i] {
-			t.Error("input data is out of bounds")
-		}
+	testCases := []struct {
+		name     string
+		inputA   []int
+		inputB   []int
+		expected []int
+	}{
+		{
+			name:     "extreme values",
+			inputA:   []int{1, 26},
+			inputB:   []int{1, 53},
+			expected: []int{2, 1},
+		},
+		{
+			name:     "slices of different lengths",
+			inputA:   []int{1, 26},
+			inputB:   []int{1, 17, 53},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := NumberToKey(tc.inputA, tc.inputB)
+			for i, v := range got {
+				if v != tc.expected[i] {
+					t.Errorf("NumberToKey(%d, %d) = %d; want %d", tc.inputA, tc.inputB, got, tc.expected)
+				}
+			}
+		})
 	}
 }
 
 func TestKeyToNumber(t *testing.T) {
-	numberedText := []int{2, 26}
-	keyStream := []int{1, 53}
-	keyes := KeyToNumber(numberedText, keyStream)
-	testCase := []int{1, 25}
-	for i := range testCase {
-		if keyes[i] != testCase[i] {
-			t.Error("input data is out of bounds")
-		}
+	testCases := []struct {
+		name     string
+		inputA   []int
+		inputB   []int
+		expected []int
+	}{
+		{
+			name:     "extreme values",
+			inputA:   []int{2, 26},
+			inputB:   []int{1, 53},
+			expected: []int{1, 25},
+		},
+		{
+			name:     "slices of different lengths",
+			inputA:   []int{2, 26},
+			inputB:   []int{1, 17, 53},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := KeyToNumber(tc.inputA, tc.inputB)
+			for i, v := range got {
+				if v != tc.expected[i] {
+					t.Errorf("KeyToNumber(%d, %d) = %d; want %d", tc.inputA, tc.inputB, got, tc.expected)
+				}
+			}
+		})
 	}
 }
 
