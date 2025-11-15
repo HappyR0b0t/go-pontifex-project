@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"unicode"
 
@@ -90,6 +91,21 @@ func CipherHandler(w http.ResponseWriter, r *http.Request) {
 
 	if len(inputData.Deck) == 0 {
 		inputData.Deck = deck_utils.DeckShuffle(deck_utils.DeckGenerator(suit, rank))
+	}
+
+	if len(inputData.Deck) != 54 {
+		http.Error(w, "Колода не имеет нужного количества карт", http.StatusBadRequest)
+		return
+	}
+
+	startingDeck := deck_utils.DeckGenerator(suit, rank)
+	// currentDeck := make(map[string]int)
+
+	for _, c := range inputData.Deck {
+		if !slices.Contains(startingDeck, c) {
+			http.Error(w, "Колода содержит карты неверного формата", http.StatusBadRequest)
+			return
+		}
 	}
 
 	initialDeck := make([]string, len(inputData.Deck))
