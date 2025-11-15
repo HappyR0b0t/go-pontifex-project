@@ -13,10 +13,10 @@ import (
 )
 
 var (
-	userStates        = make(map[int64]string)
-	userStatesMu      sync.Mutex
-	textForDecipher   = make(map[int64]string)
-	textForDecipherMu sync.Mutex
+	// userStates        = make(map[int64]string)
+	// userStatesMu      sync.Mutex
+	// textForDecipher   = make(map[int64]string)
+	// textForDecipherMu sync.Mutex
 
 	// Command texts
 	cipherText   = "Please, enter message to cipher. Message should contain only latin characters, no symbols allowed"
@@ -110,12 +110,12 @@ func NewUpdateHandler() *UpdateHandler {
 }
 
 func (h *UpdateHandler) stateChanger(chatID int64, state string) {
-	userStatesMu.Lock()
-	userStates[chatID] = state
-	userStatesMu.Unlock()
+	h.userStatesMu.Lock()
+	h.userStates[chatID] = state
+	h.userStatesMu.Unlock()
 }
 
-func (h *UpdateHandler) HandleUpdate(bot *tgbotapi.BotAPI, update tgbotapi.Update) {
+func (h *UpdateHandler) HandleUpdate(bot *tgbotapi.BotAPI, update tgbotapi.Update) error {
 	switch {
 	// Handle messages
 	case update.Message != nil:
@@ -124,18 +124,19 @@ func (h *UpdateHandler) HandleUpdate(bot *tgbotapi.BotAPI, update tgbotapi.Updat
 	case update.CallbackQuery != nil:
 		handleButton(bot, update.CallbackQuery)
 	}
+	return nil
 }
 
-func (h *UpdateHandler) handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
+func (h *UpdateHandler) handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) error {
 	chatID := msg.Chat.ID
 
-	userStatesMu.Lock()
-	state, ok := userStates[chatID]
+	h.userStatesMu.Lock()
+	state, ok := h.userStates[chatID]
 	if !ok {
 		state = "started"
-		userStates[chatID] = state
+		h.userStates[chatID] = state
 	}
-	userStatesMu.Unlock()
+	h.userStatesMu.Unlock()
 
 	if msg.IsCommand() {
 		switch msg.Command() {
@@ -143,13 +144,13 @@ func (h *UpdateHandler) handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Messag
 			reply := tgbotapi.NewMessage(chatID, cipherText)
 			bot.Send(reply)
 			h.stateChanger(chatID, "waiting_for_text_to_cipher")
-			return
+			return nil
 
 		case "decipher":
 			reply := tgbotapi.NewMessage(chatID, decipherText)
 			bot.Send(reply)
 			h.stateChanger(chatID, "waiting_for_text_to_decipher")
-			return
+			return nil
 
 		case "generate":
 			replyMessage := tgbotapi.NewMessage(chatID, "Here is your deck:")
@@ -157,32 +158,32 @@ func (h *UpdateHandler) handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Messag
 			generated := HandleGenerateCommand()
 			reply := tgbotapi.NewMessage(chatID, generated)
 			bot.Send(reply)
-			return
+			return nil
 
 		case "start":
 			reply := tgbotapi.NewMessage(chatID, "Use /cipher or /decipher to start.")
 			bot.Send(reply)
 			h.stateChanger(chatID, "started")
-			return
+			return nil
 
 		case "menu":
 			sendMenu(bot, chatID)
-			return
+			return nil
 
 		case "help":
 			reply := tgbotapi.NewMessage(chatID, helpText)
 			bot.Send(reply)
-			return
+			return nil
 
 		case "about":
 			reply := tgbotapi.NewMessage(chatID, aboutText)
 			bot.Send(reply)
-			return
+			return nil
 
 		default:
 			reply := tgbotapi.NewMessage(chatID, "Sorry, no such command. Try again")
 			bot.Send(reply)
-			return
+			return nil
 		}
 
 	}
@@ -194,9 +195,9 @@ func (h *UpdateHandler) handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Messag
 			bot.Send(reply)
 
 		case "waiting_for_text_to_cipher":
-			textForDecipherMu.Lock()
-			textForDecipher[chatID] = msg.Text
-			textForDecipherMu.Unlock()
+			h.textForDecipherMu.Lock()
+			h.textForDecipher[chatID] = msg.Text
+			h.textForDecipherMu.Unlock()
 
 			reply := tgbotapi.NewMessage(chatID, "Provide a deck or send 'no deck' message")
 			bot.Send(reply)
@@ -204,9 +205,9 @@ func (h *UpdateHandler) handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Messag
 			h.stateChanger(chatID, "waiting_for_deck_to_cipher")
 
 		case "waiting_for_deck_to_cipher":
-			textForDecipherMu.Lock()
-			originalText := textForDecipher[chatID]
-			textForDecipherMu.Unlock()
+			h.textForDecipherMu.Lock()
+			originalText := h.textForDecipher[chatID]
+			h.textForDecipherMu.Unlock()
 
 			cipheredTextMessage := tgbotapi.NewMessage(chatID, "Here is your ciphered text:")
 			bot.Send(cipheredTextMessage)
@@ -224,9 +225,9 @@ func (h *UpdateHandler) handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Messag
 			h.stateChanger(chatID, "started")
 
 		case "waiting_for_text_to_decipher":
-			textForDecipherMu.Lock()
-			textForDecipher[chatID] = msg.Text
-			textForDecipherMu.Unlock()
+			h.textForDecipherMu.Lock()
+			h.textForDecipher[chatID] = msg.Text
+			h.textForDecipherMu.Unlock()
 
 			reply := tgbotapi.NewMessage(chatID, "Now send the deck to use for deciphering:")
 			bot.Send(reply)
@@ -234,9 +235,9 @@ func (h *UpdateHandler) handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Messag
 			h.stateChanger(chatID, "waiting_for_deck_to_decipher")
 
 		case "waiting_for_deck_to_decipher":
-			textForDecipherMu.Lock()
-			originalText := textForDecipher[chatID]
-			textForDecipherMu.Unlock()
+			h.textForDecipherMu.Lock()
+			originalText := h.textForDecipher[chatID]
+			h.textForDecipherMu.Unlock()
 
 			decipheredTextMessage := tgbotapi.NewMessage(chatID, "Here is your deciphered text:")
 			bot.Send(decipheredTextMessage)
@@ -255,6 +256,7 @@ func (h *UpdateHandler) handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Messag
 
 		}
 	}
+	return nil
 }
 
 func handleButton(bot *tgbotapi.BotAPI, query *tgbotapi.CallbackQuery) {
@@ -322,6 +324,20 @@ func HandleCipherCommand(message string, deck string) []string {
 		return []string{}
 	}
 
+	// if resp.StatusCode != http.StatusOK {
+	// 	var backendError struct {
+	// 		Error string `json:"error"`
+	// 	}
+
+	// 	if err := json.NewDecoder(resp.Body).Decode(&backendError); err != nil {
+	// 		bot.Send(tgbotapi.NewMessage(chatID, "Ошибка: не удалось разобрать ответ сервера."))
+	// 		return
+	// 	}
+
+	// 	bot.Send(tgbotapi.NewMessage(chatID, backendError.Error))
+	// 	return
+	// }
+
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
@@ -332,7 +348,9 @@ func HandleCipherCommand(message string, deck string) []string {
 	}
 
 	var result CipherDecipherResponse
+
 	err = json.Unmarshal(body, &result)
+
 	if err != nil {
 		fmt.Println("Ошибка при разборе JSON:", err)
 		return []string{}
