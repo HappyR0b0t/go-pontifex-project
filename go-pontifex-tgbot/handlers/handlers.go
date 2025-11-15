@@ -212,7 +212,7 @@ func (h *UpdateHandler) handleMessage(bot *tgbotapi.BotAPI, msg *tgbotapi.Messag
 			cipheredTextMessage := tgbotapi.NewMessage(chatID, "Here is your ciphered text:")
 			bot.Send(cipheredTextMessage)
 
-			cipheredText := HandleCipherCommand(originalText, msg.Text)
+			cipheredText := HandleCipherCommand(bot, chatID, originalText, msg.Text)
 			replyText := tgbotapi.NewMessage(chatID, cipheredText[0])
 			bot.Send(replyText)
 
@@ -301,7 +301,7 @@ type CipherDecipherResponse struct {
 	Deck    []string `json:"deck"`
 }
 
-func HandleCipherCommand(message string, deck string) []string {
+func HandleCipherCommand(bot *tgbotapi.BotAPI, chatID int64, message string, deck string) []string {
 	url := "http://pntfx-backend:8080/cipher"
 
 	deckArr := []string{}
@@ -324,19 +324,19 @@ func HandleCipherCommand(message string, deck string) []string {
 		return []string{}
 	}
 
-	// if resp.StatusCode != http.StatusOK {
-	// 	var backendError struct {
-	// 		Error string `json:"error"`
-	// 	}
+	if resp.StatusCode != http.StatusOK {
+		var backendError struct {
+			Error string `json:"error"`
+		}
 
-	// 	if err := json.NewDecoder(resp.Body).Decode(&backendError); err != nil {
-	// 		bot.Send(tgbotapi.NewMessage(chatID, "Ошибка: не удалось разобрать ответ сервера."))
-	// 		return
-	// 	}
+		if err := json.NewDecoder(resp.Body).Decode(&backendError); err != nil {
+			bot.Send(tgbotapi.NewMessage(chatID, "Ошибка: не удалось разобрать ответ сервера."))
+			return nil
+		}
 
-	// 	bot.Send(tgbotapi.NewMessage(chatID, backendError.Error))
-	// 	return
-	// }
+		bot.Send(tgbotapi.NewMessage(chatID, backendError.Error))
+		return nil
+	}
 
 	defer resp.Body.Close()
 
