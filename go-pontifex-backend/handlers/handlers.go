@@ -15,6 +15,17 @@ var suit = [4]string{"clubs", "diamonds", "hearts", "spades"}
 
 var rank = [13]string{"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"}
 
+// A struct to repr Error response
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
+func writeError(w http.ResponseWriter, message string, status int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(ErrorResponse{Error: message})
+}
+
 // A struct for response parsing at /cipher
 type CipherResponse struct {
 	Answer string    `json:"answer"`
@@ -85,6 +96,7 @@ func CipherHandler(w http.ResponseWriter, r *http.Request) {
 	for _, v := range inputData.Message {
 		if !unicode.IsLetter(v) || !unicode.Is(unicode.Latin, v) {
 			http.Error(w, "Сообщение не должно содержать символы отличные от букв латинского алфавита", http.StatusBadRequest)
+			writeError(w, "Сообщение не должно содержать символы отличные от букв латинского алфавита", http.StatusUnprocessableEntity)
 			return
 		}
 	}
@@ -99,7 +111,6 @@ func CipherHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	startingDeck := deck_utils.DeckGenerator(suit, rank)
-	// currentDeck := make(map[string]int)
 
 	for _, c := range inputData.Deck {
 		if !slices.Contains(startingDeck, c) {
