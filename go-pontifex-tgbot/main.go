@@ -3,6 +3,7 @@ package main
 import (
 	// "database/sql"
 	// "fmt"
+	"fmt"
 	"log"
 	"os"
 
@@ -32,6 +33,15 @@ import (
 // 	fmt.Println("Connected to PostgreSQL successfully.")
 // }
 
+func safe(fn func()) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered", r)
+		}
+	}()
+	fn()
+}
+
 func main() {
 	// initDB()
 
@@ -57,6 +67,8 @@ func main() {
 		if update.Message == nil {
 			continue
 		}
-		go h.HandleUpdate(bot, update)
+		go safe(func() {
+			h.HandleUpdate(bot, update)
+		})
 	}
 }
